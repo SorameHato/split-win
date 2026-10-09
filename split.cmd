@@ -1,1 +1,2 @@
-@powershell.exe -ExecutionPolicy Bypass -Command "%~dp0\split.ps1" %*
+@echo off
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0split2.ps1" %*

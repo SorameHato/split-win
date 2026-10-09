@@ -70,19 +70,24 @@ if ($streamDest -ne $Null -and $destBytes -gt 0) {
 $streamSrc.Close()
 
 # join command
-[string] $cmdJoin = 'COPY /b ' + [string]::Join(' +', $destList.ToArray())
+# BAT 파일이 어느 위치로 이동하더라도 자신의 위치를 기준으로 파일을 찾도록 함
+[string] $cmdJoin = 'COPY /b ' + [string]::Join(' +', $destList | ForEach-Object {
+  '"%~dp0' + (Split-Path $_ -Leaf) + '"'
+})
 
 if (-not $noJoin) {
   # BAT to join files
   Out-File -FilePath ($path + '.join.bat') -Encoding Default -InputObject (
-    $cmdJoin + ' ' + $path)
+    "@echo off`r`n" +
+    $cmdJoin + ' "%~dp0' + (Split-Path $path -Leaf) + '"')
 }
 
 if (-not $noTest) {
   # BAT to join files test
   Out-File -FilePath ($path + '.join.test.bat') -Encoding Default -InputObject (
-    $cmdJoin + ' ' + $path + ".tmp`r`n" +
-    'fc /b ' + $path + ' ' + $path + '.tmp && del ' + $path + ".tmp`r`n" +
+    "@echo off`r`n" +
+    $cmdJoin + ' "%~dp0' + (Split-Path $path -Leaf) + '.tmp"' + "`r`n" +
+    'fc /b "%~dp0' + (Split-Path $path -Leaf) + '" "%~dp0' + (Split-Path $path -Leaf) + '.tmp" && del "%~dp0' + (Split-Path $path -Leaf) + '.tmp"' + "`r`n" +
     "@echo Push any key to close...`r`n@pause > nul")
 }
 
